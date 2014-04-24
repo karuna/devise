@@ -245,6 +245,28 @@ class FailureTest < ActiveSupport::TestCase
 
     test 'calls the original controller if not confirmed email' do
       env = {
+        "warden.options" => { :recall => "devise/sessions#new", :attempted_path => "/users/sign_in", :message => :unconfirmed },
+        "devise.mapping" => Devise.mappings[:user],
+        "warden" => stub_everything
+      }
+      call_failure(env)
+      assert @response.third.body.include?('<h2>Sign in</h2>')
+      assert @response.third.body.include?('You have to confirm your account before continuing.')
+    end
+
+    test 'calls the original controller if inactive account' do
+      env = {
+        "warden.options" => { :recall => "devise/sessions#new", :attempted_path => "/users/sign_in", :message => :inactive },
+        "devise.mapping" => Devise.mappings[:user],
+        "warden" => stub_everything
+      }
+      call_failure(env)
+      assert @response.third.body.include?('<h2>Sign in</h2>')
+      assert @response.third.body.include?('Your account was not activated yet.')
+    end
+
+    test 'calls the original controller if not confirmed email' do
+      env = {
         "warden.options" => { recall: "devise/sessions#new", attempted_path: "/users/sign_in", message: :unconfirmed },
         "devise.mapping" => Devise.mappings[:user],
         "warden" => stub_everything
